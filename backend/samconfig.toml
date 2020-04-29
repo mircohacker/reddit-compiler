@@ -1,0 +1,9 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "reddit-serial-compiler"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1qwh4ke8ke115"
+s3_prefix = "reddit-serial-compiler"
+region = "eu-central-1"
+capabilities = "CAPABILITY_IAM"

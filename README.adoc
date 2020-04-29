@@ -1,0 +1,25 @@
+= Reddit serial compiler
+
+This repo contains the code to compile multiple reddit (text) posts into one `epub` file.
+This can be used to read a serial on a device of your choice.
+For example an ebook reader.
+
+== Project structure
+
+The `frontend` directory contains a react app that allows users the creation of their epub.
+This frontend will be deployed to github pages.
+
+The `backend`  directory contains a Python FastAPI project which implements the logic to get the reddit posts and stitch them together in order to form an epub.
+This API will be hosted in an AWS Lambda function.
+
+== Contributing
+
+- PRs are always welcome
+- If you find a bug but don't want to fix it yourself please file an issue.
+
+== TODOs
+
+- Styling (I am no designer...)
+- add tests
+- move to functional components
+

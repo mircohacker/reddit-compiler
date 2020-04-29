@@ -1,0 +1,8 @@
+.full-width {
+    display: block;
+}
+
+/* to force a scrollbar and avoid page jumps */
+html {
+    overflow-y: scroll;
+}
