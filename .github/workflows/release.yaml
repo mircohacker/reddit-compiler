@@ -17,10 +17,11 @@ jobs:
           cd frontend
           yarn install
           yarn run build
-
+          cd ..
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@releases/v3
-        with:
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          BRANCH: gh-pages # The branch the action should deploy to.
-          FOLDER: frontend/dist # The folder the action should deploy.
+        env:
+          ACCESS_TOKEN: ${{ secrets.TOKEN }}
+        run: |
+          set -x
+          git remote set-url origin https://mircohaug:${ACCESS_TOKEN}@github.com/mircohaug/reddit-compiler.git
+          git push origin `git subtree split --prefix frontend/dist master`:gh-pages --force

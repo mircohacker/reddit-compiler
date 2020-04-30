@@ -11,5 +11,5 @@ gen
 __pycache__/
 backend/__pycache__/
 
-dist/
+*.js.map
 .aws-sam/
