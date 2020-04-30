@@ -74,13 +74,11 @@ class BookResult(BaseModel):
     mimeType: str = Field("application/epub+zip")
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
 @app.get("/ping")
 def read_root():
+    """
+    simple ping endpoint...
+    """
     return {"ping": "pong"}
 
 
