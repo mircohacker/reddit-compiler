@@ -10,6 +10,7 @@ from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 from praw.exceptions import ClientException
+from praw.reddit import Submission
 from pydantic import BaseModel, HttpUrl, Field
 from reddit2epub.reddit2epubLib import get_chapters_from_anchor, reddit, create_book_from_chapters
 from starlette.config import Config
@@ -54,7 +55,11 @@ class ErrorResponse(BaseModel):
 
 
 class Chapter(BaseModel):
-    id: str = Field(description="The id of the chapter. Is equivalent to the id of the represented reddit id.")
+    id: str = Field(
+        description="The fullname of the chapter. Is equivalent to the fullname of the represented reddit chapter. "
+                    "ATTENTION: fullname != id. Fullnames contain a tx_ prefix where x denotes the type of the "
+                    "referenced object. This API currently only supports t3_ prefixes. Other types are ignored but "
+                    "may be supported in the future.")
     title: str
     snippet: str = Field(description="The first 2500 characters of the post. Formatted in markdown")
     date: datetime.datetime = Field(description="The date of the reddit post")
@@ -115,7 +120,7 @@ def get_chapters(url: HttpUrl = Query(..., description="The Reddit URL of one of
     for reddit_chapter in reversed(reddit_chapters):
         chapters.append(
             Chapter(
-                id=reddit_chapter.id,
+                id=reddit_chapter.fullname,
                 title=reddit_chapter.title,
                 snippet=reddit_chapter.selftext[:2500],
                 date=reddit_chapter.created_utc,
@@ -130,10 +135,12 @@ def get_chapters(url: HttpUrl = Query(..., description="The Reddit URL of one of
 def get_epub(ids: List[str] = Query(...,
                                     # This alias is used to obtain compatibility with axios list marshalling and php multi values
                                     alias="ids[]",
-                                    description="The sorted list of chapter ids for the epub")):
-    chapters = []
-    for chapter_id in ids:
-        chapters.append(reddit.submission(id=chapter_id))
+                                    description="The sorted list of chapter fullnames for the epub")):
+
+    chapters = list(reddit.info(fullnames=ids))
+
+    # currently only submissions are allowed
+    chapters = [c for c in chapters if type(c) == Submission]
 
     book_author = chapters[0].author.name
     book_title = chapters[0].title
