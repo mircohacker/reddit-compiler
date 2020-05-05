@@ -15,30 +15,19 @@ interface Props {
 
 interface State {
     processing: boolean;
-    intervalId: number
-    percent: number
-    animatedProgress: boolean
 }
 
 
 export class DownloadContainer extends React.Component<Props, State> {
     state = {
         processing: false,
-        percent: 0,
-        intervalId: 0,
-        animatedProgress: false,
-
     };
 
     render() {
 
         let progressBar = <div/>;
         if (this.state.processing) {
-            if (this.state.animatedProgress) {
-                progressBar = <ProgressBar animated now={100}/>
-            } else {
-                progressBar = <ProgressBar now={this.state.percent} label={`${Math.round(this.state.percent)}%`}/>
-            }
+            progressBar = <ProgressBar animated now={100}/>
         }
 
         if (this.props.chapters.length > 0) {
@@ -54,9 +43,8 @@ export class DownloadContainer extends React.Component<Props, State> {
                       <span className="sr-only">Loading...</span>
                     </Spinner>}</Button>
                     <p className="text-muted">
-                        The reddit API used under the hood imposes rate limiting.
-                        Therefor only approximately one chapter per second can be processed.
-                        So please be patient when creating books with manny pages.
+                        The reddit API used under the hood imposes rate limiting. So the creation of the epub can take
+                        some time especially with many chapters
                     </p>
                     {progressBar}
 
@@ -69,33 +57,9 @@ export class DownloadContainer extends React.Component<Props, State> {
         }
     }
 
-    componentWillUnmount = (): void => {
-        // use intervalId from the state to clear the interval
-        this.stopTimer();
-    };
-
-    private stopTimer() {
-        clearInterval(this.state.intervalId);
-    }
-
-    private timer = (increment: number): void => {
-        // If we were to optimistic fade timer into undefined animated behaviour
-        if (this.state.percent + increment > 100) {
-            this.stopTimer();
-            this.setState((previousState: State) => ({
-                animatedProgress: true
-            }));
-        } else {
-            this.setState((previousState: State) => ({
-                percent: previousState.percent ? previousState.percent + increment : increment
-            }));
-        }
-    };
-
     private onDownload = (): void => {
         let that = this;
-        let numberOfChapters = that.props.chapters.length;
-        this.startProcessing(numberOfChapters);
+        this.startProcessing();
 
         BackendAdapter.getEpubFromChapters(this.props.chapters)
             .then(function (response: AxiosResponse<BookResult>) {
@@ -122,21 +86,14 @@ export class DownloadContainer extends React.Component<Props, State> {
     };
 
     private stopProcessing() {
-        this.stopTimer();
         this.setState({
             processing: false,
         });
     }
 
-    private startProcessing(numberOfChapters: number) {
-        let increment = (100 / numberOfChapters) * 1.1;
-        var intervalId = setInterval(this.timer.bind(this, increment), 1000);
-        // store intervalId in the state so it can be accessed later:
+    private startProcessing() {
         this.setState({
-            intervalId: intervalId,
             processing: true,
-            percent: 0,
-            animatedProgress: false
         });
     }
 

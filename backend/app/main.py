@@ -21,7 +21,9 @@ from starlette.responses import JSONResponse
 config = Config(".env")
 REVERSE_PROXY_URL = config('REVERSE_PROXY_URL', default="/prod")
 
-app = FastAPI(openapi_prefix=REVERSE_PROXY_URL)
+app = FastAPI(openapi_prefix=REVERSE_PROXY_URL, title="Reddit compiler API",
+              description="This API can be used to compile multiple reddit text posts into one epub file.",
+              version="1.0.0")
 
 
 async def catch_exceptions_middleware(request: Request, call_next):
@@ -80,7 +82,7 @@ class BookResult(BaseModel):
 
 
 @app.get("/ping")
-def read_root():
+def ping():
     """
     simple ping endpoint...
     """
@@ -136,7 +138,9 @@ def get_epub(ids: List[str] = Query(...,
                                     # This alias is used to obtain compatibility with axios list marshalling and php multi values
                                     alias="ids[]",
                                     description="The sorted list of chapter fullnames for the epub")):
-
+    """
+    This endpoint can be used to get the finalised epub file.
+    """
     chapters = list(reddit.info(fullnames=ids))
 
     # currently only submissions are allowed
