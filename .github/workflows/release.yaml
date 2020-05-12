@@ -22,6 +22,8 @@ jobs:
           ACCESS_TOKEN: ${{ secrets.TOKEN }}
         run: |
           rm -f frontend/.gitignore
+          git config --global user.email "git@mircohaug.de"
+          git config --global user.name "Deploy Action"
           git add frontend/dist
           git status
           git commit -m 'frontend build'
