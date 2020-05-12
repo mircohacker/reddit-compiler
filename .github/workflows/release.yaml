@@ -21,6 +21,10 @@ jobs:
         env:
           ACCESS_TOKEN: ${{ secrets.TOKEN }}
         run: |
+          rm -f frontend/.gitignore
+          git add frontend/dist
+          git status
+          git commit -m 'frontend build'
           git remote set-url origin https://mircohaug:${ACCESS_TOKEN}@github.com/mircohaug/reddit-compiler.git
           git push origin `git subtree split --prefix frontend/dist master`:gh-pages --force
 

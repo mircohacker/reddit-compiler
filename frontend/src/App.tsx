@@ -40,7 +40,7 @@ class App extends Component<{}, State> {
                             Reddit serial compiler
                         </h1>
                         <h2>
-                            Convert your favourite reddit fiction into a convenient ebook!
+                            Convert your favourite reddit fiction into a convenient ebook!!
                         </h2>
                     </Jumbotron>
                     {this.state.errorMessage &&
