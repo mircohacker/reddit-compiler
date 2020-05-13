@@ -86,7 +86,7 @@ def ping():
     """
     simple ping endpoint...
     """
-    return {"ping": "pong"}
+    return {"ping": "pong!"}
 
 
 @app.get("/chapters", response_model=ChapterOverview, responses={
