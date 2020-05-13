@@ -30,25 +30,28 @@ jobs:
           git remote set-url origin https://mircohaug:${ACCESS_TOKEN}@github.com/mircohaug/reddit-compiler.git
           git push origin `git subtree split --prefix frontend/dist master`:gh-pages --force
 
-# TODO build own aws SAM image
-#  backend-build-and-deploy:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: 🛎️ Checkout
-#        uses: actions/checkout@v2 # If you're using actions/checkout@v2 you must set persist-credentials to false in most cases for the deployment to work correctly.
-#        with:
-#          persist-credentials: false
-#      - name: 🐍 🔧 backend build
-#        uses: TractorZoom/sam-cli-action@master
-#        with:
-#          sam_command: "build"
-#          directory: ./backend
-#      - name: 🐍 🚀 backend deploy
-#        uses: TractorZoom/sam-cli-action@master
-#        with:
-#          sam_command: "deploy"
-#          directory: ./backend
-#        env:
-#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          AWS_DEFAULT_REGION: eu-central-1
+  backend-build-and-deploy:
+#    failed because missing python support
+#    uses: TractorZoom/sam-cli-action@master
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛎️ Checkout
+        uses: actions/checkout@v2 # If you're using actions/checkout@v2 you must set persist-credentials to false in most cases for the deployment to work correctly.
+        with:
+          persist-credentials: false
+      - name: 🐍 🔧 backend build
+        uses: chriscoffee/sam-github-actions@master
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: eu-central-1
+        with:
+          args: build --template-file backend/template.yml
+      - name: 🐍 🚀 backend deploy
+        uses: chriscoffee/sam-github-actions@master
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: eu-central-1
+        with:
+          args: deploy --template-file backend/template.yml
