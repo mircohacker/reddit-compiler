@@ -47,7 +47,7 @@ jobs:
           AWS_DEFAULT_REGION: eu-central-1
         with:
 #          args: build --template-file backend/template.yml
-          args: build --help; python3 --version, python --version
+          args: 'build --help; python3 --version; python --version'
 #      - name: 🐍 🚀 backend deploy
 #        uses: chriscoffee/sam-github-actions@master
 #        env:
