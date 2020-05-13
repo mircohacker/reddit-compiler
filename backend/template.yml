@@ -17,7 +17,7 @@ Resources:
             CodeUri: ./
             #            init py is important
             Handler: app.main.handler
-            Runtime: python3.7
+            Runtime: python3.8
             Timeout: 300 # timeout of your lambda function
             MemorySize: 128 # memory size of your lambda function
             Description: The API for the reddit serial compiler
