@@ -24,11 +24,11 @@ jobs:
           rm -f frontend/.gitignore
           git config --global user.email "git@mircohaug.de"
           git config --global user.name "Deploy Action"
-          git add frontend/dist
+          git add frontend/build
           git status
           git commit -m 'frontend build'
           git remote set-url origin https://mircohaug:${ACCESS_TOKEN}@github.com/mircohaug/reddit-compiler.git
-          git push origin `git subtree split --prefix frontend/dist master`:gh-pages --force
+          git push origin `git subtree split --prefix frontend/build master`:gh-pages --force
 
 # TODO build own aws SAM image
 #  backend-build-and-deploy:
