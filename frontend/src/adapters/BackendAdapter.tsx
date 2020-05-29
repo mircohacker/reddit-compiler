@@ -6,7 +6,7 @@ import {Chapter} from "../models/chapter";
 import {BookResult} from "../models/bookResult";
 
 
-const getChapters = (chapterUrl: string, searchTermLength: number, searchAllReddit: boolean): Promise<AxiosResponse<ChapterOverview>> => {
+export const getChapters = (chapterUrl: string, searchTermLength: number, searchAllReddit: boolean): Promise<AxiosResponse<ChapterOverview>> => {
     return axios.get(`${config.BACKEND_HOST}/chapters`, {
         params: {
             url: chapterUrl,
@@ -16,16 +16,11 @@ const getChapters = (chapterUrl: string, searchTermLength: number, searchAllRedd
     })
 };
 
-const getEpubFromChapters = (chapters: Chapter[]): Promise<AxiosResponse<BookResult>> => {
+export const getEpubFromChapters = (chapters: Chapter[]): Promise<AxiosResponse<BookResult>> => {
     const chapter_ids = chapters.map((chapter: Chapter) => (chapter.id));
     return Axios.get(`${config.BACKEND_HOST}/epub`, {
         params: {
             ids: chapter_ids,
         }
     });
-};
-
-export const BackendAdapter = {
-    getChapters,
-    getEpubFromChapters,
 };

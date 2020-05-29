@@ -9,7 +9,7 @@ import {ChapterOverview} from "../models/chapterOverview";
 import Card from "react-bootstrap/Card";
 import Spinner from "react-bootstrap/Spinner";
 import Accordion from "react-bootstrap/Accordion";
-import {BackendAdapter} from "../adapters/BackendAdapter";
+import {getChapters} from "../adapters/BackendAdapter";
 
 interface AnchorProps {
     onSubmit: (chapters: Chapter[]) => void;
@@ -29,7 +29,7 @@ export const AnchorUrl: FunctionComponent<AnchorProps> = (props) => {
 
         setProcessing(true);
 
-        BackendAdapter.getChapters(url, searchTermLength, allReddit)
+        getChapters(url, searchTermLength, allReddit)
             .then(function (response: AxiosResponse<ChapterOverview>) {
                 props.onSubmit(response.data.chapters);
                 setResult(response.data);

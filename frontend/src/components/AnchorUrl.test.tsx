@@ -2,9 +2,8 @@ import React from 'react';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {AnchorUrl} from "./AnchorUrl";
 import '@testing-library/jest-dom/extend-expect'
-import * as backendAdapter from "../adapters/BackendAdapter";
+import {getChapters} from "../adapters/BackendAdapter";
 
-// Mock out all top level functions, such as get, put, delete and post:
 jest.mock("../adapters/BackendAdapter");
 
 function setupComponent() {
@@ -37,11 +36,11 @@ describe("anchorurl", () => {
         const linkElement = getByLabelText("Search term length");
 
         let value = 42;
-        fireEvent.change(linkElement, {target: {value: value}});
+
+        linkElement.setAttribute("value", "42")
 
         expect(linkElement).toBeInTheDocument();
-        // @ts-ignore
-        expect(linkElement.value + "").toEqual(value + "");
+        expect(linkElement.getAttribute('value')).toEqual(value + "");
     });
 
     it("should send submit and display results", async () => {
@@ -55,8 +54,9 @@ describe("anchorurl", () => {
         expect(button).toBeInTheDocument();
         expect(button).toBeEnabled();
 
+
         // @ts-ignore
-        const getChMock = backendAdapter.getChaptersFromBackend.mockImplementation(() => {
+        getChapters.mockImplementation(() => {
             return Promise.resolve({
                 data: {
                     author: "my_author",
@@ -72,7 +72,7 @@ describe("anchorurl", () => {
 
         // await for the promise to be resolved. async stuff...
         await waitFor(() => {
-            expect(getChMock).toHaveBeenCalledTimes(1);
+            expect(getChapters).toHaveBeenCalledTimes(1);
             expect(onErrorMock).toHaveBeenCalledTimes(0);
             expect(onSubmitMock).toHaveBeenCalledTimes(1);
             expect(onSubmitMock).toHaveBeenCalledWith([]);
@@ -97,7 +97,7 @@ describe("anchorurl", () => {
 
         let errorResponse = {foo: "bar"};
         // @ts-ignore
-        const getChMock = backendAdapter.getChaptersFromBackend.mockImplementation(() => {
+        const getChMock = getChapters.mockImplementation(() => {
             return Promise.reject(errorResponse);
         });
 

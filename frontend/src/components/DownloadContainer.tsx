@@ -6,7 +6,7 @@ import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 import {BookResult} from "../models/bookResult";
 import ProgressBar from "react-bootstrap/ProgressBar";
-import {BackendAdapter} from "../adapters/BackendAdapter";
+import {getEpubFromChapters} from "../adapters/BackendAdapter";
 
 interface Props {
     chapters: Chapter[];
@@ -61,7 +61,7 @@ export class DownloadContainer extends React.Component<Props, State> {
         let that = this;
         this.startProcessing();
 
-        BackendAdapter.getEpubFromChapters(this.props.chapters)
+        getEpubFromChapters(this.props.chapters)
             .then(function (response: AxiosResponse<BookResult>) {
                 let data = response.data;
 
