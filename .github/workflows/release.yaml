@@ -16,6 +16,7 @@ jobs:
         run: |
           cd frontend
           yarn install
+          yarn test .
           yarn run build
       - name: 🌍 🚀 Frontend Deploy
         env:
