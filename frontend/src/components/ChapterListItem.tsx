@@ -1,8 +1,7 @@
-import React from "react";
+import React, {FunctionComponent, useState} from "react";
 
 import {Chapter} from "../models/chapter";
 import Card from "react-bootstrap/Card";
-import Accordion from "react-bootstrap/Accordion";
 import Button from "react-bootstrap/Button";
 import TrashIcon from "./TrashIcon";
 import ReactMarkdown from "react-markdown";
@@ -14,25 +13,25 @@ interface Props {
     onDelete: (chapter: Chapter) => void
 }
 
-export class ChapterListItem extends React.Component<Props> {
+export const ChapterListItem: FunctionComponent<Props> = (props) => {
 
-    render() {
-        return (
-            <Card>
-                <Accordion.Toggle as={Card.Header} eventKey={this.props.chapter.id}>
-                    {this.props.chapter.title}
-                    <Button variant="light" className="float-right" onClick={this.onDeleteClick}><TrashIcon/></Button>
-                </Accordion.Toggle>
-                <Accordion.Collapse eventKey={this.props.chapter.id}>
-                    <Card.Body>
-                        <ReactMarkdown source={this.props.chapter.snippet}/>
-                    </Card.Body>
-                </Accordion.Collapse>
-            </Card>
-        );
+    const onDeleteClick = (): void => {
+        props.onDelete(props.chapter);
     }
 
-    private onDeleteClick = (): void => {
-        this.props.onDelete(this.props.chapter);
-    }
+    const [visibleBody, setVisibleBody] = useState(false);
+
+    return (
+        <Card>
+            <Card.Header onClick={() => {
+                setVisibleBody(!visibleBody)
+            }}>
+                {props.chapter.title}
+                <Button variant="light" className="float-right" onClick={onDeleteClick}><TrashIcon/></Button>
+            </Card.Header>
+            {visibleBody && <Card.Body>
+              <ReactMarkdown source={props.chapter.snippet}/>
+            </Card.Body>}
+        </Card>
+    );
 }
