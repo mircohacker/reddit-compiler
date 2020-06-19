@@ -60,7 +60,6 @@ export const ChapterList: FunctionComponent<Props> = (props) => {
                         {...provided.droppableProps}
                         ref={provided.innerRef}
                     >
-                        {/*<Accordion>*/}
                         {props.chapters.map((item, index) => (
                             <Draggable key={item.id} draggableId={item.id} index={index}>
                                 {(provided, snapshot) => (
@@ -76,7 +75,6 @@ export const ChapterList: FunctionComponent<Props> = (props) => {
                             </Draggable>
                         ))}
                         {provided.placeholder}
-                        {/*</Accordion>*/}
                     </ListContainer>
                 )}
             </Droppable>
