@@ -49,7 +49,6 @@ export const ChapterList: FunctionComponent<Props> = (props) => {
 
 
     // TODO MULTI drag https://github.com/atlassian/react-beautiful-dnd/tree/master/stories/src/multi-drag
-    // TODO better performance for big lists
     return (
         <DragDropContext onDragEnd={onDragEnd}>
             <h2>List of Chapters</h2>
