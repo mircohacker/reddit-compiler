@@ -18,7 +18,7 @@ interface AnchorProps {
 
 export const AnchorUrl: FunctionComponent<AnchorProps> = (props) => {
 
-    const [url, setUrl] = useState("https://www.reddit.com/r/HFY/comments/flx9ae/the_galactic_archives_present_humanity_part_2/");
+    const [url, setUrl] = useState("");
     const [processing, setProcessing] = useState(false);
     const [searchTermLength, setSearchTermLength] = useState(2);
     const [allReddit, setAllReddit] = useState(false);
@@ -49,6 +49,7 @@ export const AnchorUrl: FunctionComponent<AnchorProps> = (props) => {
                     <Form.Label className={"full-width"}>
                         URL of one chapter
                         <Form.Control type="url" required value={url}
+                                      placeholder="https://www.reddit.com/r/HFY/comments/flx9ae/the_galactic_archives_present_humanity_part_2/"
                                       onChange={(e: ChangeEvent<HTMLInputElement>) => (setUrl(e.target.value))}/>
                     </Form.Label>
                     <Form.Text className="text-muted">Just paste the full URL to one of the chapters of the series
