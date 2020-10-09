@@ -3,7 +3,7 @@ const dev = {
 };
 
 const prod = {
-    BACKEND_HOST: "https://ylftmuv32g.execute-api.eu-central-1.amazonaws.com/prod"
+    BACKEND_HOST: "https://hku3e1grla.execute-api.eu-central-1.amazonaws.com"
 };
 
 export interface Config {

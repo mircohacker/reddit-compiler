@@ -8,11 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🛎️ Checkout
-        uses: actions/checkout@v2 # If you're using actions/checkout@v2 you must set persist-credentials to false in most cases for the deployment to work correctly.
+        uses: actions/checkout@v2
         with:
           persist-credentials: false
-
-      - name: 🌍 🔧 Frontend Install and Build  # This example project is built using npm and outputs the result to the 'build' folder. Replace with the commands required to build your project, or remove this step entirely if your site is pre-built.
+      - name: 🌍 🔧 Frontend Install and Build
         run: |
           cd frontend
           yarn install
@@ -30,26 +29,45 @@ jobs:
           git commit -m 'frontend build'
           git remote set-url origin https://mircohaug:${ACCESS_TOKEN}@github.com/mircohaug/reddit-compiler.git
           git push origin `git subtree split --prefix frontend/build master`:gh-pages --force
-
-# TODO build own aws SAM image
-#  backend-build-and-deploy:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: 🛎️ Checkout
-#        uses: actions/checkout@v2 # If you're using actions/checkout@v2 you must set persist-credentials to false in most cases for the deployment to work correctly.
-#        with:
-#          persist-credentials: false
-#      - name: 🐍 🔧 backend build
-#        uses: TractorZoom/sam-cli-action@master
-#        with:
-#          sam_command: "build"
-#          directory: ./backend
-#      - name: 🐍 🚀 backend deploy
-#        uses: TractorZoom/sam-cli-action@master
-#        with:
-#          sam_command: "deploy"
-#          directory: ./backend
-#        env:
-#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          AWS_DEFAULT_REGION: eu-central-1
+  backend-build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛎️ Checkout
+        uses: actions/checkout@master
+      - name: 🐍 🔧 🐳 Kaniko build backend
+        uses: aevea/action-kaniko@master
+        with:
+          image: mircohaug/reddit-compiler-backend
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          path: backend
+          cache: true
+          cache_registry: mircohaug/kaniko-cache
+          tag_with_latest: true
+          tag: ${{ github.sha }}
+      - name: 🐍 🔧 🐳 Kaniko build gw-helper
+        uses: aevea/action-kaniko@master
+        with:
+          image: mircohaug/aws-api-gateway-update-helper
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          path: gateway-update-helper
+          cache: true
+          cache_registry: mircohaug/kaniko-cache
+          tag_with_latest: true
+      - name: 🐍 🚀 ☁️ backend deploy
+        timeout-minutes: 15
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: eu-central-1
+        run: |
+          cd cdk-ts
+          npm install
+          npm run build
+          ./node_modules/.bin/cdk diff \
+            --parameters "imageName=mircohaug/reddit-compiler-backend:$GITHUB_SHA"
+          ./node_modules/.bin/cdk deploy \
+            --progress events \
+            --require-approval never \
+            --parameters "imageName=mircohaug/reddit-compiler-backend:$GITHUB_SHA"
