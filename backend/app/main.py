@@ -8,20 +8,15 @@ from typing import List, Union
 from ebooklib import epub
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from mangum import Mangum
 from praw.exceptions import ClientException
 from praw.reddit import Submission
 from pydantic import BaseModel, HttpUrl, Field
 from reddit2epub.reddit2epubLib import get_chapters_from_anchor, reddit, create_book_from_chapters
-from starlette.config import Config
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-# configuration for prod as it is hard to set env vars for the API Gateway
-config = Config(".env")
-REVERSE_PROXY_URL = config('REVERSE_PROXY_URL', default="/prod")
 
-app = FastAPI(openapi_prefix=REVERSE_PROXY_URL, title="Reddit compiler API",
+app = FastAPI(title="Reddit compiler API",
               description="This API can be used to compile multiple reddit text posts into one epub file.",
               version="1.0.0")
 
@@ -33,7 +28,7 @@ async def catch_exceptions_middleware(request: Request, call_next):
         logging.exception(e)
         return JSONResponse(
             status_code=500,
-            content={"detail": f"Oops! {e.__class__} >>{e}<<. There goes a rainbow... "},
+            content={"detail": f"There goes a rainbow... Oops! {e.__class__} >> \n{e}"},
         )
 
 
@@ -81,12 +76,17 @@ class BookResult(BaseModel):
     mimeType: str = Field("application/epub+zip")
 
 
-@app.get("/ping")
+@app.get("/pong")
 def ping():
     """
     simple ping endpoint...
     """
-    return {"ping": "pong"}
+    return {"pong": "ping"}
+
+
+@app.get("/")
+def root():
+    return {"message": "Congrats the api works. 😁 Head over to /docs to see how it works"}
 
 
 @app.get("/chapters", response_model=ChapterOverview, responses={
@@ -158,6 +158,3 @@ def get_epub(ids: List[str] = Query(...,
         epub.write_epub(output, book, {})
 
         return BookResult(content=(base64.b64encode(output.getvalue())), fileName=file_name)
-
-
-handler = Mangum(app)

@@ -4,14 +4,14 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-mangum-cli = "*"
+uvicorn = "*"
+datetime = "*"
 
 [packages]
 fastapi = "*"
-uvicorn = "*"
-datetime = "*"
 reddit2epub = "*"
-mangum = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3"
+
+# TODO try poetry
