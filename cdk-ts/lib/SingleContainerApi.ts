@@ -3,9 +3,9 @@ import {CfnOutput, Construct} from '@aws-cdk/core';
 import * as ecs from "@aws-cdk/aws-ecs";
 import {Peer, Port, SecurityGroup, SubnetType, Vpc} from "@aws-cdk/aws-ec2";
 import {RetentionDays} from "@aws-cdk/aws-logs";
-import * as apigatewayv2 from "@aws-cdk/aws-apigatewayv2";
-import {HttpMethod, HttpProxyIntegration} from "@aws-cdk/aws-apigatewayv2";
+import {HttpApi, HttpMethod} from "@aws-cdk/aws-apigatewayv2";
 import {PolicyStatement} from "@aws-cdk/aws-iam";
+import {HttpProxyIntegration} from "@aws-cdk/aws-apigatewayv2-integrations";
 
 export interface SingleContainerApiProps {
     imageName: string,
@@ -25,7 +25,7 @@ export class SingleContainerApi extends Construct {
             ]
         })
 
-        const httpApi = new apigatewayv2.HttpApi(this, 'apiGW', {
+        const httpApi = new HttpApi(this, 'apiGW', {
             apiName: id + '-apiGW',
             createDefaultStage: true,
             defaultIntegration: new HttpProxyIntegration({
@@ -77,6 +77,7 @@ export class SingleContainerApi extends Construct {
             securityGroups: [
                 securityGroup
             ],
+            desiredCount: 1,
         });
 
         new CfnOutput(this, 'staticEndpoint', {
