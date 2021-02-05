@@ -86,6 +86,9 @@ def ping():
 
 @app.get("/")
 def root():
+    """
+    Simple test if the root of the api is present
+    """
     return {"message": "Congrats the api works. 😁 Head over to /docs to see how it works"}
 
 
