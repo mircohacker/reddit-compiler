@@ -24,6 +24,8 @@ type Headers struct {
 	ContentType string `json:"Content-Type"`
 }
 
+var client = http.Client{Transport: NewAddHeaderTransport(nil)}
+
 func HandleRequest(ctx context.Context, payload events.APIGatewayProxyRequest) (LambdaResult, error) {
 	var retBody interface{}
 	lc, _ := lambdacontext.FromContext(ctx)
@@ -41,10 +43,11 @@ func HandleRequest(ctx context.Context, payload events.APIGatewayProxyRequest) (
 		}
 	case "/chapters":
 		urlParam := payload.PathParameters["url"]
-		_, err := getInitialPost(urlParam)
+		post, err := getInitialPost(urlParam)
 		if err != nil {
 			return LambdaResult{}, err
 		}
+		listPostsOfAuthor(post.Author, post.Subreddit, post.Title)
 	default:
 		retBody = ""
 
@@ -60,6 +63,39 @@ func HandleRequest(ctx context.Context, payload events.APIGatewayProxyRequest) (
 		},
 	}
 	return result, nil
+}
+
+func listPostsOfAuthor(author string, subreddit string, searchTerm string) ([]SinglePost, error) {
+	searchBaseUrl, _ := url.Parse("http://www.reddit.com/search.json")
+	q := searchBaseUrl.Query()
+	q.Set("sort", "new")
+	q.Set("limit", "100")
+	q.Set("include_over_18", "on")
+	searchBaseUrl.RawQuery = q.Encode()
+
+	// Set this part directly because reddit's search api does not accept encoded pluses
+	searchBaseUrl.RawQuery = searchBaseUrl.RawQuery + fmt.Sprintf("&q=author:%s+subreddit:%s+%s", url.QueryEscape(author), url.QueryEscape(subreddit), url.QueryEscape(searchTerm))
+	rawSearchUrl := searchBaseUrl.String()
+	//TODO pagination
+	println(rawSearchUrl)
+	req, err := http.NewRequest("GET", rawSearchUrl, nil)
+	if err != nil {
+		return []SinglePost{}, err
+	}
+	response, err := client.Do(req)
+	if err != nil {
+		return []SinglePost{}, err
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	var parsedResult Listing
+	err = json.Unmarshal(body, &parsedResult)
+	println(len(parsedResult.Data.Children))
+	var searchResultPost []SinglePost
+	for _, child := range parsedResult.Data.Children {
+		searchResultPost = append(searchResultPost, child.Data)
+	}
+	return searchResultPost, nil
 }
 
 var redditHosts = []string{"reddit.com", "redd.it"}
@@ -86,13 +122,10 @@ func getInitialPost(urlParam string) (SinglePost, error) {
 		return defaultResult, errors.New("not correct host")
 	}
 
-	client := &http.Client{}
 	req, err := http.NewRequest("GET", urlParam+".json", nil)
 	if err != nil {
 		return defaultResult, err
 	}
-
-	req.Header.Add("User-Agent", `mirco Test the shit out of this go`)
 	response, err := client.Do(req)
 	if err != nil {
 		return defaultResult, err

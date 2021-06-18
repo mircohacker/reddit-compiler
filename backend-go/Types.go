@@ -23,3 +23,18 @@ type RedditResult []struct {
 		} `json:"children"`
 	} `json:"data"`
 }
+
+type Listing struct {
+	Kind string `json:"kind"`
+	Data struct {
+		After  string `json:"after"`
+		Dist   int    `json:"dist"`
+		Facets struct {
+		} `json:"facets"`
+		Modhash  string `json:"modhash"`
+		Children []struct {
+			Kind string     `json:"kind"`
+			Data SinglePost `json:"data,omitempty"`
+		} `json:"children"`
+	} `json:"data"`
+}
