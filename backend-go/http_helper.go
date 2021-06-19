@@ -18,5 +18,5 @@ func NewAddHeaderTransport(T http.RoundTripper) *AddHeaderTransport {
 	return &AddHeaderTransport{T}
 }
 
-//TODO handle to many requests
+//TODO handle too many requests
 //TODO check out if we need to authorize against reddit

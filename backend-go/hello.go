@@ -9,9 +9,11 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type LambdaResult struct {
@@ -43,11 +45,20 @@ func HandleRequest(ctx context.Context, payload events.APIGatewayProxyRequest) (
 		}
 	case "/chapters":
 		urlParam := payload.PathParameters["url"]
-		post, err := getInitialPost(urlParam)
-		if err != nil {
-			return LambdaResult{}, err
+		//searchTermLength, err3 := strconv.ParseInt(payload.PathParameters["search_term_length"], 10, 32)
+		//if err3 != nil {
+		//	return LambdaResult{}, err3
+		//}
+		//allReddit, err4 := strconv.ParseBool(payload.PathParameters["allReddit"])
+		//if err4 != nil {
+		//	return LambdaResult{}, err4
+		//}
+		//chaptersDto, err2 := handleChaptersCall(urlParam, searchTermLength,allReddit)
+		chaptersDto, err2 := handleChaptersCall(urlParam)
+		if err2 != nil {
+			return LambdaResult{}, err2
 		}
-		listPostsOfAuthor(post.Author, post.Subreddit, post.Title)
+		retBody = chaptersDto
 	default:
 		retBody = ""
 
@@ -63,6 +74,32 @@ func HandleRequest(ctx context.Context, payload events.APIGatewayProxyRequest) (
 		},
 	}
 	return result, nil
+}
+
+func handleChaptersCall(urlParam string) (SearchChaptersResultDto, error) {
+	initialPost, err := getInitialPost(urlParam)
+	if err != nil {
+		return SearchChaptersResultDto{}, err
+	}
+	searchTerm := strings.Join(strings.Fields(initialPost.Title)[:2], " ")
+	postsOfAuthor, err := listPostsOfAuthor(initialPost.Author, initialPost.Subreddit, searchTerm)
+	var chaptersDto SearchChaptersResultDto
+	chaptersDto.Author = initialPost.Author
+	chaptersDto.SearchTerm = searchTerm
+	if err != nil {
+		return SearchChaptersResultDto{}, err
+	}
+	for _, singlePost := range postsOfAuthor {
+		sec, dec := math.Modf(singlePost.CreatedUtc)
+		chaptersDto.Chapters = append(chaptersDto.Chapters, ChaptersDto{
+			ID:           singlePost.ID,
+			Title:        singlePost.Title,
+			Snippet:      singlePost.SelftextHTML[:2500] + "...",
+			Date:         time.Unix(int64(sec), int64(dec*(1e9))),
+			OriginalLink: singlePost.URL,
+		})
+	}
+	return chaptersDto, nil
 }
 
 func listPostsOfAuthor(author string, subreddit string, searchTerm string) ([]SinglePost, error) {
@@ -88,7 +125,7 @@ func listPostsOfAuthor(author string, subreddit string, searchTerm string) ([]Si
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
-	var parsedResult Listing
+	var parsedResult RedditResultListing
 	err = json.Unmarshal(body, &parsedResult)
 	println(len(parsedResult.Data.Children))
 	var searchResultPost []SinglePost
@@ -133,7 +170,7 @@ func getInitialPost(urlParam string) (SinglePost, error) {
 	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
-	var parsedResult RedditResult
+	var parsedResult RedditResultSinglePost
 	err = json.Unmarshal([]byte(body), &parsedResult)
 	if err != nil {
 		return defaultResult, err

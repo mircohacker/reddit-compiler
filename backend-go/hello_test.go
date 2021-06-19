@@ -18,3 +18,10 @@ func Test_listPostsOfAuthor(t *testing.T) {
 	assert.Equal(t, 6, len(res), "No error allowed")
 	//assert.Equal(t, "o2dk2q", post.ID, "The id should be correct")
 }
+
+func Test_handleChaptersCall(t *testing.T) {
+	resultDto, err := handleChaptersCall("https://old.reddit.com/r/HFY/comments/o2dk2q/enemy_mind_epilogue/")
+	assert.Equal(t, nil, err, "No error allowed")
+	assert.Equal(t, "o0shad0o", resultDto.Author, "The author should be passed to dto")
+	assert.Equal(t, 6, len(resultDto.Chapters), "The author should be passed to dto")
+}
