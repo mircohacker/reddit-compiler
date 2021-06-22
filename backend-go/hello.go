@@ -44,6 +44,7 @@ func HandleRequest(ctx context.Context, payload events.APIGatewayProxyRequest) (
 			"ping": "pong",
 		}
 	case "/chapters":
+		var err error
 		urlParam := payload.PathParameters["url"]
 		//searchTermLength, err3 := strconv.ParseInt(payload.PathParameters["search_term_length"], 10, 32)
 		//if err3 != nil {
@@ -53,12 +54,17 @@ func HandleRequest(ctx context.Context, payload events.APIGatewayProxyRequest) (
 		//if err4 != nil {
 		//	return LambdaResult{}, err4
 		//}
-		//chaptersDto, err2 := handleChaptersCall(urlParam, searchTermLength,allReddit)
-		chaptersDto, err2 := handleChaptersCall(urlParam)
-		if err2 != nil {
-			return LambdaResult{}, err2
+		//chaptersDto, err := handleChaptersCall(urlParam, searchTermLength,allReddit)
+		var chaptersDto SearchChaptersResultDto
+		if chaptersDto, err = handleChaptersCall(urlParam); err != nil {
+			return LambdaResult{}, err
 		}
-		retBody = chaptersDto
+		if retBody, err = json.Marshal(chaptersDto); err != nil {
+			return LambdaResult{}, err
+		}
+	case "/epub":
+		ids := payload.MultiValueQueryStringParameters["ids[]"]
+		createEpubFromIds(ids)
 	default:
 		retBody = ""
 
@@ -74,6 +80,37 @@ func HandleRequest(ctx context.Context, payload events.APIGatewayProxyRequest) (
 		},
 	}
 	return result, nil
+}
+
+func createEpubFromIds(ids []string) {
+	getPostsFromIds(ids)
+}
+
+func getPostsFromIds(ids []string) []SinglePost {
+	stringPath := strings.Join(ids, ",")
+	getByIdUrl := fmt.Sprintf("https://www.reddit.com/by_id/%s.json", stringPath)
+	return extractPostsFromRedditUrl(getByIdUrl)
+}
+
+func extractPostsFromRedditUrl(redditUrl string) []SinglePost {
+	req, err := http.NewRequest("GET", redditUrl, nil)
+	if err != nil {
+		panic(err)
+	}
+	response, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	var parsedResult RedditResultListing
+	err = json.Unmarshal(body, &parsedResult)
+	println(len(parsedResult.Data.Children))
+	var postsById []SinglePost
+	for _, child := range parsedResult.Data.Children {
+		postsById = append(postsById, child.Data)
+	}
+	return postsById
 }
 
 func handleChaptersCall(urlParam string) (SearchChaptersResultDto, error) {
@@ -103,7 +140,7 @@ func handleChaptersCall(urlParam string) (SearchChaptersResultDto, error) {
 }
 
 func listPostsOfAuthor(author string, subreddit string, searchTerm string) ([]SinglePost, error) {
-	searchBaseUrl, _ := url.Parse("http://www.reddit.com/search.json")
+	searchBaseUrl, _ := url.Parse("https://www.reddit.com/search.json")
 	q := searchBaseUrl.Query()
 	q.Set("sort", "new")
 	q.Set("limit", "100")
@@ -115,24 +152,7 @@ func listPostsOfAuthor(author string, subreddit string, searchTerm string) ([]Si
 	rawSearchUrl := searchBaseUrl.String()
 	//TODO pagination
 	println(rawSearchUrl)
-	req, err := http.NewRequest("GET", rawSearchUrl, nil)
-	if err != nil {
-		return []SinglePost{}, err
-	}
-	response, err := client.Do(req)
-	if err != nil {
-		return []SinglePost{}, err
-	}
-
-	body, err := ioutil.ReadAll(response.Body)
-	var parsedResult RedditResultListing
-	err = json.Unmarshal(body, &parsedResult)
-	println(len(parsedResult.Data.Children))
-	var searchResultPost []SinglePost
-	for _, child := range parsedResult.Data.Children {
-		searchResultPost = append(searchResultPost, child.Data)
-	}
-	return searchResultPost, nil
+	return extractPostsFromRedditUrl(rawSearchUrl), nil
 }
 
 var redditHosts = []string{"reddit.com", "redd.it"}

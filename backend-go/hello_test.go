@@ -25,3 +25,8 @@ func Test_handleChaptersCall(t *testing.T) {
 	assert.Equal(t, "o0shad0o", resultDto.Author, "The author should be passed to dto")
 	assert.Equal(t, 6, len(resultDto.Chapters), "The author should be passed to dto")
 }
+
+func Test_getPostsFromIds(t *testing.T) {
+	resultDto := getPostsFromIds([]string{"t3_o5npxn", "t3_m71tyw"})
+	assert.Equal(t, 2, len(resultDto), "A post for each id is necessary")
+}
