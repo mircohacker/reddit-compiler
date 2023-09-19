@@ -1,3 +1,7 @@
+= NOT WORKING ANY MORE
+
+The tool was based on the reddit API which was shut down. See https://en.wikipedia.org/wiki/2023_Reddit_API_controversy
+
 = Reddit serial compiler
 
 This repo contains the code to compile multiple reddit (text) posts into one `epub` file.
